@@ -9,12 +9,50 @@
   },
   {
     "adapter": "Dart",
-    "label": "Flutter: run on Linux device",
+    "label": "Flutter: run on iPhone",
+    "type": "flutter",
+    "request": "launch",
+    "program": "lib/main.dart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "device_id": "iphone"
+  },
+  {
+    "adapter": "Dart",
+    "label": "Flutter: run on Android",
+    "type": "flutter",
+    "request": "launch",
+    "program": "lib/main.dart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "device_id": "android"
+  },
+  {
+    "adapter": "Dart",
+    "label": "Flutter: run on Linux",
     "type": "flutter",
     "request": "launch",
     "program": "lib/main.dart",
     "cwd": "$ZED_WORKTREE_ROOT",
     "device_id": "linux",
+    "platform": "desktop"
+  },
+  {
+    "adapter": "Dart",
+    "label": "Flutter: run on Windows",
+    "type": "flutter",
+    "request": "launch",
+    "program": "lib/main.dart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "device_id": "windows",
+    "platform": "desktop"
+  },
+  {
+    "adapter": "Dart",
+    "label": "Flutter: run on macOS",
+    "type": "flutter",
+    "request": "launch",
+    "program": "lib/main.dart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "device_id": "macos",
     "platform": "desktop"
   },
   {
@@ -26,6 +64,34 @@
     "cwd": "$ZED_WORKTREE_ROOT",
     "device_id": "chrome",
     "platform": "web"
+  },
+  {
+    "adapter": "Dart",
+    "label": "Flutter: run on Edge (web)",
+    "type": "flutter",
+    "request": "launch",
+    "program": "lib/main.dart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "device_id": "edge",
+    "platform": "web"
+  },
+  {
+    "adapter": "Dart",
+    "label": "Flutter: run in release mode",
+    "type": "flutter",
+    "request": "launch",
+    "program": "lib/main.dart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "profile": "release"
+  },
+  {
+    "adapter": "Dart",
+    "label": "Flutter: run in profile mode",
+    "type": "flutter",
+    "request": "launch",
+    "program": "lib/main.dart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "profile": "profile"
   },
   {
     "adapter": "Dart",

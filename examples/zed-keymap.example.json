@@ -1,0 +1,58 @@
+// .zed/keymap.json
+//
+// Example keymap configuration for Flutter hot reload and DevTools
+//
+// To use:
+// 1. Copy this file to your Flutter project's .zed/keymap.json
+// 2. Start a Flutter debug session first
+// 3. Use the keybindings below
+
+[
+  // Hot Reload - Press Shift+R during a Flutter debug session
+  // This sends the hot-reload command to the active terminal
+  {
+    "keys": ["shift r"],
+    "command": "terminal::SendText",
+    "args": {
+      "text": "flutter hot-reload\n"
+    }
+  },
+
+  // Hot Restart - Press Shift+T during a Flutter debug session
+  // This sends the restart command to the active terminal
+  {
+    "keys": ["shift t"],
+    "command": "terminal::SendText",
+    "args": {
+      "text": "flutter restart\n"
+    }
+  },
+
+  // Open DevTools - Press Shift+D to launch Flutter DevTools
+  // This opens DevTools at http://localhost:9100
+  {
+    "keys": ["shift d"],
+    "command": "terminal::SendText",
+    "args": {
+      "text": "flutter pub global run devtools --port 9100\n"
+    }
+  },
+
+  // Quick pub get - Press Shift+G to run flutter pub get
+  {
+    "keys": ["shift g"],
+    "command": "terminal::SendText",
+    "args": {
+      "text": "flutter pub get\n"
+    }
+  },
+
+  // Quick flutter doctor - Press Shift+F to run flutter doctor
+  {
+    "keys": ["shift f"],
+    "command": "terminal::SendText",
+    "args": {
+      "text": "flutter doctor -v\n"
+    }
+  }
+]

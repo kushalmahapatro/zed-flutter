@@ -1,0 +1,67 @@
+{
+  "flutter_devices": {
+    "label": "Flutter: list devices",
+    "command": "flutter devices",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_devices_machine": {
+    "label": "Flutter: list devices (machine JSON)",
+    "command": "flutter devices --machine",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_pick_default_device": {
+    "label": "Flutter: set default device for Zed debug",
+    "command": "bash scripts/zed-flutter-pick-device.sh",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_hot_reload": {
+    "label": "Flutter: Hot Reload",
+    "command": "flutter pub global run flutter_tools hot-reload",
+    "hide": "success",
+    "run": "onTaskSuccess"
+  },
+  "flutter_devtools": {
+    "label": "Flutter: Open DevTools (local server)",
+    "command": "flutter pub global run devtools --port 9100",
+    "reveal": "always"
+  },
+  "flutter_devtools_browser": {
+    "label": "Flutter: Open DevTools in browser",
+    "command": "dart devtools",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_run_debug": {
+    "label": "Flutter: Run in Debug Mode",
+    "command": "flutter run --debug",
+    "reveal": "always"
+  },
+  "flutter_run_release": {
+    "label": "Flutter: Run in Release Mode",
+    "command": "flutter run --release",
+    "reveal": "always"
+  },
+  "flutter_run_profile": {
+    "label": "Flutter: Run in Profile Mode",
+    "command": "flutter run --profile",
+    "reveal": "always"
+  },
+  "flutter_get_deps": {
+    "label": "Flutter: Get Dependencies",
+    "command": "flutter pub get",
+    "reveal": "never"
+  },
+  "flutter_clean": {
+    "label": "Flutter: Clean Build",
+    "command": "flutter clean",
+    "reveal": "never"
+  },
+  "flutter_doctor": {
+    "label": "Flutter: Doctor",
+    "command": "flutter doctor -v",
+    "reveal": "always"
+  }
+}
