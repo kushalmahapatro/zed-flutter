@@ -1,0 +1,48 @@
+[
+  {
+    "adapter": "Dart",
+    "label": "Flutter: run (default entry)",
+    "type": "flutter",
+    "request": "launch",
+    "program": "lib/main.dart",
+    "cwd": "$ZED_WORKTREE_ROOT"
+  },
+  {
+    "adapter": "Dart",
+    "label": "Flutter: run on Linux device",
+    "type": "flutter",
+    "request": "launch",
+    "program": "lib/main.dart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "device_id": "linux",
+    "platform": "desktop"
+  },
+  {
+    "adapter": "Dart",
+    "label": "Flutter: run on Chrome (web)",
+    "type": "flutter",
+    "request": "launch",
+    "program": "lib/main.dart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "device_id": "chrome",
+    "platform": "web"
+  },
+  {
+    "adapter": "Dart",
+    "label": "Flutter: attach (VM Service)",
+    "type": "flutter",
+    "request": "attach",
+    "program": "lib/main.dart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "vmServiceUri": "http://127.0.0.1:8181/abcd1234="
+  },
+  {
+    "adapter": "Dart",
+    "label": "Flutter (FVM): run",
+    "type": "flutter",
+    "request": "launch",
+    "program": "lib/main.dart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "useFvm": true
+  }
+]

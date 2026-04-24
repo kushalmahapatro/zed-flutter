@@ -1,0 +1,9 @@
+id = "flutter"
+name = "Flutter"
+description = "Flutter run/debug integration. Install the Dart extension for the Dart/Flutter language server and debug adapter (breakpoints, isolates, threads). This extension adds debug locators that turn Flutter Zed tasks into Dart-adapter debug sessions, plus starter launch presets."
+version = "0.1.0"
+schema_version = 1
+authors = ["Kushal"]
+repository = "https://github.com/kushal/zed-flutter"
+
+[debug_locators.flutter]
