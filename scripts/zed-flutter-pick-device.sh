@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Interactive helper: writes the chosen Flutter device id to .zed/flutter_device_id
+# Interactive helper: writes the chosen Flutter device id to:
+# - .zed/flutter_device_id (legacy)
+# - .zed/flutter_devices.json (new richer format)
 # so the Zed Flutter extension can reuse it when you debug via a task without `-d`.
 #
 # Usage (from your Flutter project root):
@@ -59,7 +61,17 @@ select choice in "${lines[@]}"; do
   if [[ -n "${choice}" ]]; then
     id="${choice%%$'\t'*}"
     printf '%s' "${id}" > .zed/flutter_device_id
-    echo "Saved default device id to .zed/flutter_device_id → ${id}"
+    python3 - "$id" > .zed/flutter_devices.json <<'PY'
+import json
+import sys
+device_id = sys.argv[1]
+print(json.dumps({
+  "default_device_id": device_id,
+  "fallback_device_ids": {},
+  "last_seen": {}
+}, indent=2))
+PY
+    echo "Saved default device id to .zed/flutter_device_id and .zed/flutter_devices.json → ${id}"
     echo "Tip: add .zed/flutter_device_id to .gitignore if you do not want to share it."
     exit 0
   fi

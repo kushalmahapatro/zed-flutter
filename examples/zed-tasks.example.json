@@ -1,4 +1,16 @@
 {
+  "flutter_bootstrap_zed_files": {
+    "label": "Flutter: bootstrap .zed tasks/debug",
+    "command": "bash scripts/zed-flutter-bootstrap.sh --flavors dev,staging,prod --targets dev:lib/main_dev.dart,staging:lib/main_staging.dart,prod:lib/main_prod.dart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_bootstrap_melos_mobile": {
+    "label": "Flutter: bootstrap monorepo (melos, apps/mobile)",
+    "command": "bash scripts/zed-flutter-bootstrap.sh --melos --package-path apps/mobile --package-name mobile --flavors dev,staging,prod --targets dev:lib/main_dev.dart,staging:lib/main_staging.dart,prod:lib/main_prod.dart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
   "flutter_devices": {
     "label": "Flutter: list devices",
     "command": "flutter devices",
@@ -14,6 +26,120 @@
   "flutter_pick_default_device": {
     "label": "Flutter: set default device for Zed debug",
     "command": "bash scripts/zed-flutter-pick-device.sh",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_create_here": {
+    "label": "Flutter: create app in current folder (.)",
+    "command": "flutter create .",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_pub_get": {
+    "label": "Flutter: pub get",
+    "command": "flutter pub get",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "never"
+  },
+  "flutter_pub_upgrade": {
+    "label": "Flutter: pub upgrade",
+    "command": "flutter pub upgrade",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_pub_outdated": {
+    "label": "Flutter: pub outdated",
+    "command": "flutter pub outdated",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_pub_deps": {
+    "label": "Flutter: pub deps",
+    "command": "flutter pub deps",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_analyze": {
+    "label": "Flutter: analyze",
+    "command": "flutter analyze",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_test": {
+    "label": "Flutter: test",
+    "command": "flutter test",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_test_coverage": {
+    "label": "Flutter: test (coverage)",
+    "command": "flutter test --coverage",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "dart_format": {
+    "label": "Dart: format",
+    "command": "dart format .",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "never"
+  },
+  "dart_fix_dry_run": {
+    "label": "Dart: fix (dry run)",
+    "command": "dart fix --dry-run",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "dart_fix_apply": {
+    "label": "Dart: fix (apply)",
+    "command": "dart fix --apply",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_build_apk": {
+    "label": "Flutter: build APK",
+    "command": "flutter build apk",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_build_appbundle": {
+    "label": "Flutter: build app bundle",
+    "command": "flutter build appbundle",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_build_ios": {
+    "label": "Flutter: build iOS (no codesign)",
+    "command": "flutter build ios --no-codesign",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_build_web": {
+    "label": "Flutter: build web",
+    "command": "flutter build web",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_build_linux": {
+    "label": "Flutter: build linux",
+    "command": "flutter build linux",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_gen_l10n": {
+    "label": "Flutter: gen-l10n",
+    "command": "flutter gen-l10n",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_install": {
+    "label": "Flutter: install (device)",
+    "command": "flutter install",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_precache": {
+    "label": "Flutter: precache (artifacts)",
+    "command": "flutter precache",
     "cwd": "$ZED_WORKTREE_ROOT",
     "reveal": "always"
   },
@@ -34,34 +160,63 @@
     "cwd": "$ZED_WORKTREE_ROOT",
     "reveal": "always"
   },
+  "flutter_pub_global_activate_devtools": {
+    "label": "Flutter: pub global activate devtools",
+    "command": "dart pub global activate devtools",
+    "reveal": "always"
+  },
   "flutter_run_debug": {
     "label": "Flutter: Run in Debug Mode",
     "command": "flutter run --debug",
+    "cwd": "$ZED_WORKTREE_ROOT",
     "reveal": "always"
   },
   "flutter_run_release": {
     "label": "Flutter: Run in Release Mode",
     "command": "flutter run --release",
+    "cwd": "$ZED_WORKTREE_ROOT",
     "reveal": "always"
   },
   "flutter_run_profile": {
     "label": "Flutter: Run in Profile Mode",
     "command": "flutter run --profile",
+    "cwd": "$ZED_WORKTREE_ROOT",
     "reveal": "always"
-  },
-  "flutter_get_deps": {
-    "label": "Flutter: Get Dependencies",
-    "command": "flutter pub get",
-    "reveal": "never"
   },
   "flutter_clean": {
     "label": "Flutter: Clean Build",
     "command": "flutter clean",
+    "cwd": "$ZED_WORKTREE_ROOT",
     "reveal": "never"
   },
   "flutter_doctor": {
     "label": "Flutter: Doctor",
     "command": "flutter doctor -v",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "fvm_flutter_pub_get": {
+    "label": "FVM: flutter pub get",
+    "command": "fvm flutter pub get",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "never"
+  },
+  "fvm_flutter_analyze": {
+    "label": "FVM: flutter analyze",
+    "command": "fvm flutter analyze",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "fvm_flutter_test": {
+    "label": "FVM: flutter test",
+    "command": "fvm flutter test",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "fvm_flutter_run_debug": {
+    "label": "FVM: flutter run --debug",
+    "command": "fvm flutter run --debug",
+    "cwd": "$ZED_WORKTREE_ROOT",
     "reveal": "always"
   }
 }

@@ -40,19 +40,62 @@ Copy the example files from this repo to your Flutter project's `.zed/` director
 cp examples/zed-debug.example.json .zed/debug.json
 cp examples/zed-tasks.example.json .zed/tasks.json
 cp examples/zed-keymap.example.json .zed/keymap.json
+# optional richer device policy:
+cp examples/zed-flutter-devices.example.json .zed/flutter_devices.json
 ```
+
+### 2b. (Recommended) Generate flavor-aware Zed files
+
+Use the bootstrap script to generate `.zed/tasks.json` and `.zed/debug.json` for your flavors:
+
+```bash
+bash scripts/zed-flutter-bootstrap.sh --flavors dev,staging,prod --targets dev:lib/main_dev.dart,staging:lib/main_staging.dart,prod:lib/main_prod.dart
+```
+
+The script auto-detects FVM when `.fvm/` exists (or force with `--fvm on` / `--fvm off`).
+
+For monorepos, you can target a package and optional melos scope:
+
+```bash
+bash scripts/zed-flutter-bootstrap.sh --melos --package-path apps/mobile --package-name mobile --flavors dev,prod --targets dev:lib/main_dev.dart,prod:lib/main_prod.dart
+```
+
+- `--package-path` sets task/debug `cwd` under `$ZED_WORKTREE_ROOT`.
+- `--melos` adds melos tasks and emits package-scoped commands.
+- `--package-name` scopes melos exec commands (when omitted, commands run directly in package `cwd`).
 
 ### 3. Start a debug session
 
 Run **debugger: start** (or the debug panel **+**). Pick the **Dart** adapter, then a Flutter task or a configuration from `.zed/debug.json`. The Dart extension launches Google's Dart/Flutter DAP; Zed's debugger then supports the usual DAP features supported by that adapter (including breakpoints and isolate-related views where the client exposes them).
 
+### Flutter CLI in Zed: tasks, not a second command bus
+
+Zed’s Wasm extension API does not let this extension register an open-ended list of **command palette** actions for every `flutter` / `dart` subcommand. The supported way to wire **all** of Flutter’s CLIs into the editor is **tasks**: define them in your project [`.zed/tasks.json`](https://zed.dev/docs/tasks) (or copy [`examples/zed-tasks.example.json`](examples/zed-tasks.example.json) and adjust). You then run them via **command palette** → **task: spawn** / **run task** (or bind keys) and they execute in the integrated terminal with full shell behavior.
+
+What this **Flutter** extension *does* in Rust/Wasm: the **`flutter` debug locator** and any subprocess it needs to resolve a device (for example `flutter devices --machine`, `fvm flutter …`, plus small shell helpers) — those are declared in [`extension.toml`](extension.toml) under `[[capabilities]]` with `kind = "process:exec"` so Zed can allow them. Everything else you want (`flutter create`, `build`, `pub`, `analyze`, DevTools, and so on) is ordinary **task** definitions pointing at the same `flutter` / `dart` / `fvm` binaries you already have on your `PATH`.
+
 ## Features
 
 ### Device selection
 
-**Automatic default (task has no `-d`):** Put a single device id on the first line of `.zed/flutter_device_id` in your project (same format as `flutter devices`). The debug locator validates it against `flutter devices --machine`; if it disappeared (unplugged emulator, and so on), it falls back to the first supported device from that list. Your Flutter task should set **`cwd`** to the project root (for example `$ZED_WORKTREE_ROOT`) so both the file and `flutter devices` run in the right place.
+**Automatic default (task has no `-d`):**
 
-**Interactive picker:** Copy [`scripts/zed-flutter-pick-device.sh`](scripts/zed-flutter-pick-device.sh) into your repo (for example under `scripts/`) and run the example task **Flutter: set default device for Zed debug** (requires `python3` for parsing JSON). Add `.zed/flutter_device_id` to `.gitignore` if you do not want to commit it.
+- Preferred config file: `.zed/flutter_devices.json`
+- Legacy fallback (still supported): `.zed/flutter_device_id` (first line only)
+
+The locator validates candidates against `flutter devices --machine` and picks the first available in this order:
+
+1. `default_device_id` from `.zed/flutter_devices.json`
+2. `fallback_device_ids.<os>` list (where `<os>` is `linux`, `mac`, or `windows`)
+3. `fallback_device_ids.all` list
+4. `.zed/flutter_device_id` legacy value
+5. first supported device from `flutter devices --machine`
+
+After resolving, it updates `.zed/flutter_devices.json` with the selected `default_device_id` and `last_seen` metadata from the machine device output.
+
+**Interactive picker:** Copy [`scripts/zed-flutter-pick-device.sh`](scripts/zed-flutter-pick-device.sh) into your repo (for example under `scripts/`) and run the example task **Flutter: set default device for Zed debug** (requires `python3` for parsing JSON). It writes both `.zed/flutter_device_id` and `.zed/flutter_devices.json`.
+
+Add `.zed/flutter_device_id` and `.zed/flutter_devices.json` to `.gitignore` if you do not want to commit local defaults.
 
 **Explicit device:** Use `-d` / `--device-id` on the task, or keep using named presets in `.zed/debug.json`:
 
@@ -92,15 +135,17 @@ Example tasks (see [`examples/zed-tasks.example.json`](examples/zed-tasks.exampl
 
 You can bind a key in `.zed/keymap.json` to run a task or paste a terminal command (see [`examples/zed-keymap.example.json`](examples/zed-keymap.example.json)).
 
-### Common Flutter Tasks
+### Common Flutter tasks (examples)
 
-The following tasks are available in `.zed/tasks.json`:
+The reference list lives in [`examples/zed-tasks.example.json`](examples/zed-tasks.example.json). It includes entries for `flutter pub`, `create`, `analyze`, `test`, `build` (APK, app bundle, iOS, web, Linux), `dart format` / `dart fix`, DevTools, `gen-l10n`, and a few **FVM** examples. All use `"cwd": "$ZED_WORKTREE_ROOT"` so they run in the project root. Add or duplicate tasks for anything else (for example `flutter drive`, custom flavors, or a `create my_app` run in a parent directory).
 
-| Task | Command | Description |
-|------|---------|-------------|
-| Flutter: Get Dependencies | `flutter pub get` | Install dependencies |
-| Flutter: Clean Build | `flutter clean` | Clean build artifacts |
-| Flutter: Doctor | `flutter doctor -v` | Check Flutter setup |
+Use the example task **Flutter: bootstrap .zed tasks/debug** to generate project-specific flavored configs quickly.
+
+## Roadmap
+
+See [`ROADMAP.md`](ROADMAP.md) for the v0.3 roadmap (milestones 1–4). See also [`RELEASING.md`](RELEASING.md).
+
+**CI locally:** from the repo root run `./scripts/ci-check.sh` (Rust tests, wasm build, JSON checks, bootstrap smoke tests).
 
 ## Debugging behavior
 

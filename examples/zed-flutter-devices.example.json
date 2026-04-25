@@ -1,0 +1,10 @@
+{
+  "default_device_id": "linux",
+  "fallback_device_ids": {
+    "linux": ["linux", "chrome"],
+    "mac": ["iphone", "macos", "chrome"],
+    "windows": ["windows", "chrome"],
+    "all": ["web-server"]
+  },
+  "last_seen": {}
+}

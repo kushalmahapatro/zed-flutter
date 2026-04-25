@@ -1,9 +1,32 @@
 id = "flutter"
 name = "Flutter"
-description = "Flutter run/debug integration. Install the Dart extension for the Dart/Flutter language server and debug adapter (breakpoints, isolates, threads). This extension adds debug locators that turn Flutter Zed tasks into Dart-adapter debug sessions, plus starter launch presets."
-version = "0.2.0"
+description = "Flutter run/debug integration. Install the Dart extension for the Dart/Flutter language server and debug adapter. This extension adds a flutter debug locator (device resolution from flutter devices and .zed/flutter_device_id) plus example tasks/debug presets in the repo. Wire other flutter/dart subcommands with .zed/tasks.json."
+version = "0.3.3"
 schema_version = 1
 authors = ["Kushal"]
 repository = "https://github.com/kushalmahapatro/zed-flutter"
+
+# Required for the Wasm debug locator to run `flutter devices --machine`, `fvm flutter …`,
+# and shell helpers for `.zed/flutter_device_id`. User installs can still restrict via
+# `granted_extension_capabilities` in Zed settings.
+[[capabilities]]
+kind = "process:exec"
+command = "flutter"
+args = ["**"]
+
+[[capabilities]]
+kind = "process:exec"
+command = "fvm"
+args = ["**"]
+
+[[capabilities]]
+kind = "process:exec"
+command = "sh"
+args = ["-c", "**"]
+
+[[capabilities]]
+kind = "process:exec"
+command = "powershell"
+args = ["-NoProfile", "-NonInteractive", "-Command", "**"]
 
 [debug_locators.flutter]
