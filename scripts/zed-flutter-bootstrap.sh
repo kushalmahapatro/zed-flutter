@@ -22,6 +22,7 @@ package_path=""
 melos_mode="off" # off|on
 package_name=""
 full_mode="off" # off|on — merge examples/zed-tasks.example.json and zed-debug.example.json
+detect_flavors_mode="off"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -51,6 +52,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --full)
       full_mode="on"
+      shift
+      ;;
+    --detect-flavors)
+      detect_flavors_mode="on"
       shift
       ;;
     -h|--help)
@@ -90,6 +95,47 @@ fi
 runner_prefix="flutter"
 if [[ "$use_fvm" -eq 1 ]]; then
   runner_prefix="fvm flutter"
+fi
+
+if [[ -z "$flavors_csv" && "$detect_flavors_mode" == "on" ]]; then
+  flavors_csv="$(python3 - <<'PY'
+import re
+from pathlib import Path
+
+def scan(path: Path):
+    if not path.is_file():
+        return []
+    text = path.read_text(encoding="utf-8", errors="replace")
+    if "productFlavors" not in text:
+        return []
+    flavors = []
+    in_pf = False
+    for line in text.splitlines():
+        if "productFlavors" in line and "{" in line:
+            in_pf = True
+            continue
+        if not in_pf:
+            continue
+        m = re.match(r"\s+([A-Za-z][A-Za-z0-9_]*)\s*\{", line)
+        if m:
+            name = m.group(1)
+            if name not in ("buildTypes", "signingConfigs", "namespace"):
+                flavors.append(name)
+        if in_pf and line.strip() == "}":
+            break
+    return flavors
+
+found = []
+for candidate in (Path("android/app/build.gradle"), Path("android/app/build.gradle.kts")):
+    found = scan(candidate)
+    if found:
+        break
+print(",".join(found))
+PY
+)"
+  if [[ -n "$flavors_csv" ]]; then
+    echo "Detected Android product flavors: ${flavors_csv}"
+  fi
 fi
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -225,6 +271,17 @@ for flavor in flavors:
         }
     )
 
+def fvmize_command(cmd: str) -> str:
+    if not runner_prefix.startswith("fvm"):
+        return cmd
+    if cmd.startswith("fvm "):
+        return cmd
+    if cmd.startswith("flutter "):
+        return cmd.replace("flutter ", "fvm flutter ", 1)
+    if cmd.startswith("dart "):
+        return cmd.replace("dart ", "fvm dart ", 1)
+    return cmd
+
 if full_mode == "on":
     tasks_example = repo_root / "examples" / "zed-tasks.example.json"
     debug_example = repo_root / "examples" / "zed-debug.example.json"
@@ -233,9 +290,12 @@ if full_mode == "on":
             example_tasks = json.load(f)
         for key, task in example_tasks.items():
             if key not in tasks:
-                tasks[key] = task
-            if package_path and task.get("cwd") == "$ZED_WORKTREE_ROOT":
-                tasks[key] = {**task, "cwd": cwd}
+                merged = dict(task)
+                if "command" in merged:
+                    merged["command"] = fvmize_command(merged["command"])
+                if package_path and merged.get("cwd") == "$ZED_WORKTREE_ROOT":
+                    merged["cwd"] = cwd
+                tasks[key] = merged
     if debug_example.is_file():
         with debug_example.open(encoding="utf-8") as f:
             example_debug = json.load(f)

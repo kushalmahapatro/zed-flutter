@@ -15,6 +15,10 @@
       "shift-i": ["task::Spawn", { "task_name": "Flutter: DevTools (widget inspector)" }],
       "shift-l": ["task::Spawn", { "task_name": "Flutter: DevTools (logging)" }],
 
+      // Hot reload / restart (needs running app + cached VM URI)
+      "alt-shift-r": ["task::Spawn", { "task_name": "Flutter: hot reload (VM service)" }],
+      "alt-shift-t": ["task::Spawn", { "task_name": "Flutter: hot restart (VM service)" }],
+
       // Log debugging workarounds
       "shift-e": ["task::Spawn", { "task_name": "Flutter: export errors to filtered.log" }],
       "shift-w": ["task::Spawn", { "task_name": "Flutter: watch run log (live filter)" }],

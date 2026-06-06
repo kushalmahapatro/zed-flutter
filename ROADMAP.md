@@ -1,5 +1,16 @@
 # Zed Flutter Extension Roadmap
 
+## Milestone 7: Hot reload, script install, flavor detect (v0.4.2 — implemented)
+
+- **`scripts/zed-flutter-hot.sh`** — hot reload / hot restart via VM Service (`ext.flutter.reassemble` / `ext.flutter.hotRestart`).
+- **`scripts/zed-flutter-copy-scripts.sh`** — `zed-flutter-init.sh` installs all helper scripts into the project `scripts/` folder.
+- **Debug locator** — launch configs include `vmServiceInfoFile: .zed/flutter/vmservice.json` for DAP URI capture.
+- **Bootstrap `--detect-flavors`** — reads Android `productFlavors` from `build.gradle` / `build.gradle.kts`.
+- **FVM-aware `--full` merge** — example tasks rewritten to `fvm flutter` when FVM is active.
+- **Tasks** — integration test, VM-service hot reload/restart; keymap `Alt+Shift+R` / `Alt+Shift+T`.
+
+---
+
 ## Milestone 6: DevTools, inspector, and log debugging (v0.4.1 — implemented)
 
 - **`scripts/zed-flutter-devtools.sh`** — open DevTools connected to the running app; deep-link to `inspector`, `logging`, `network`, etc.; resolves VM Service URI from cache or `run.log`.
