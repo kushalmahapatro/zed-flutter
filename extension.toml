@@ -1,7 +1,7 @@
 id = "flutter"
 name = "Flutter"
 description = "Full Flutter workflow companion for Zed. Install the Dart extension for analyzer/LSP and the Dart debug adapter. This extension adds an enhanced flutter debug locator (profile, flavor, dart-define, attach), FVM SDK hints for the Dart LSP, bootstrap tooling, and example tasks/debug presets."
-version = "0.4.0"
+version = "0.4.1"
 snippets = "./snippets/dart.json"
 schema_version = 1
 authors = ["Kushal"]

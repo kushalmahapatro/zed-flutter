@@ -149,6 +149,66 @@
     "hide": "success",
     "run": "onTaskSuccess"
   },
+  "flutter_run_tee_log": {
+    "label": "Flutter: run (tee to log)",
+    "command": "mkdir -p .zed/flutter && flutter run --debug 2>&1 | tee -a .zed/flutter/run.log",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_cache_vmservice": {
+    "label": "Flutter: cache VM service from run log",
+    "command": "bash scripts/zed-flutter-logs.sh cache-uri",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_devtools_connected": {
+    "label": "Flutter: DevTools (connected)",
+    "command": "bash scripts/zed-flutter-devtools.sh",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_devtools_inspector": {
+    "label": "Flutter: DevTools (widget inspector)",
+    "command": "bash scripts/zed-flutter-devtools.sh inspector",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_devtools_logging": {
+    "label": "Flutter: DevTools (logging)",
+    "command": "bash scripts/zed-flutter-devtools.sh logging",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_devtools_network": {
+    "label": "Flutter: DevTools (network)",
+    "command": "bash scripts/zed-flutter-devtools.sh network",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_devtools_server": {
+    "label": "Flutter: DevTools server (port 9100)",
+    "command": "dart devtools --port 9100",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_logs_watch": {
+    "label": "Flutter: watch run log (live filter)",
+    "command": "bash scripts/zed-flutter-logs.sh watch",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_logs_export_errors": {
+    "label": "Flutter: export errors to filtered.log",
+    "command": "bash scripts/zed-flutter-logs.sh export-levels error",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
+  "flutter_logs_device": {
+    "label": "Flutter: device logs stream",
+    "command": "bash scripts/zed-flutter-logs.sh device",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
   "flutter_devtools": {
     "label": "Flutter: Open DevTools (local server)",
     "command": "flutter pub global run devtools --port 9100",

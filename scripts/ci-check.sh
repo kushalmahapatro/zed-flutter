@@ -77,4 +77,31 @@ write_pubspec "$SMOKE/mono/apps/mobile/pubspec.yaml"
   python3 -c "import json; d=json.load(open('.zed/tasks.json')); assert 'melos exec' in d['flutter_run_debug']['command']"
 )
 
+echo "==> DevTools / log script smoke"
+SMOKE_LOG="$(mktemp -d)"
+mkdir -p "$SMOKE_LOG/proj/.zed/flutter"
+printf '%s\n' 'name: ci_smoke
+version: 0.0.0
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+' > "$SMOKE_LOG/proj/pubspec.yaml"
+cat >"$SMOKE_LOG/proj/.zed/flutter/run.log" <<'EOF'
+Launching lib/main.dart on Linux in debug mode...
+A Dart VM Service on Linux is available at: http://127.0.0.1:4321/abc123=/
+I/flutter (12345): App started
+E/flutter (12345): Exception: test failure
+EOF
+(
+  cd "$SMOKE_LOG/proj"
+  mkdir -p scripts
+  cp "$REPO_ROOT/scripts/zed-flutter-devtools.sh" scripts/
+  cp "$REPO_ROOT/scripts/zed-flutter-logs.sh" scripts/
+  chmod +x scripts/zed-flutter-devtools.sh scripts/zed-flutter-logs.sh
+  bash scripts/zed-flutter-logs.sh cache-uri >/dev/null
+  test -f .zed/flutter/vmservice.json
+  bash scripts/zed-flutter-logs.sh export-levels error >/dev/null
+  test -s .zed/flutter/filtered.log
+  bash scripts/zed-flutter-logs.sh filter 'App started' | grep -q 'App started'
+)
+
 echo "ci-check: OK"

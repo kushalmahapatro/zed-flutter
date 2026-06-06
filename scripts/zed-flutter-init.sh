@@ -33,8 +33,14 @@ fi
 
 "$REPO_ROOT/scripts/zed-flutter-bootstrap.sh" --full "$@"
 
+if [[ ! -f .gitignore ]] || ! grep -q '.zed/flutter/run.log' .gitignore 2>/dev/null; then
+  echo "Tip: append examples/zed-gitignore.example entries to .gitignore for local log/device files"
+fi
+
 echo
 echo "Zed Flutter init complete."
 echo "  - Install the Dart extension in Zed"
 echo "  - Install this repo as a dev extension (Extensions → Install Dev Extension)"
 echo "  - Run tasks via task: spawn; debug via debugger: start"
+echo "  - DevTools: Shift+D (connected), Shift+I (inspector), Shift+L (logging)"
+echo "  - Logs: run with tee, then Shift+W (watch) or Shift+E (export errors)"

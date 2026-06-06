@@ -1,0 +1,8 @@
+# Optional .gitignore entries for Zed Flutter extension local state
+.zed/flutter_device_id
+.zed/flutter_devices.json
+.zed/flutter/run.log
+.zed/flutter/filtered.log
+.zed/flutter/vmservice.json
+.zed/flutter/vmservice_uri
+.zed/flutter/snapshots/

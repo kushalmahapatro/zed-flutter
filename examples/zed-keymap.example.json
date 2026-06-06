@@ -1,58 +1,37 @@
-// .zed/keymap.json
+// .zed/keymap.json — Flutter workflows (hot reload, DevTools, log debugging)
 //
-// Example keymap configuration for Flutter hot reload and DevTools
+// Copy to your project's .zed/keymap.json after running zed-flutter-init.sh
 //
-// To use:
-// 1. Copy this file to your Flutter project's .zed/keymap.json
-// 2. Start a Flutter debug session first
-// 3. Use the keybindings below
+// Zed limitation: terminals and the debug console support search (Ctrl+Shift+F in
+// terminal) but not "filter lines" (hide non-matches). Use the log export tasks or
+// DevTools → Logging for structured debug output.
 
 [
-  // Hot Reload - Press Shift+R during a Flutter debug session
-  // This sends the hot-reload command to the active terminal
   {
-    "keys": ["shift r"],
-    "command": "terminal::SendText",
-    "args": {
-      "text": "flutter hot-reload\n"
+    "context": "Workspace",
+    "bindings": {
+      // DevTools & inspector (requires running app + cached VM URI or run.log)
+      "shift-d": ["task::Spawn", { "task_name": "Flutter: DevTools (connected)" }],
+      "shift-i": ["task::Spawn", { "task_name": "Flutter: DevTools (widget inspector)" }],
+      "shift-l": ["task::Spawn", { "task_name": "Flutter: DevTools (logging)" }],
+
+      // Log debugging workarounds
+      "shift-e": ["task::Spawn", { "task_name": "Flutter: export errors to filtered.log" }],
+      "shift-w": ["task::Spawn", { "task_name": "Flutter: watch run log (live filter)" }],
+
+      // Run with persistent log file (pair with watch/export tasks)
+      "shift-r": ["task::Spawn", { "task_name": "Flutter: run (tee to log)" }]
     }
   },
 
-  // Hot Restart - Press Shift+T during a Flutter debug session
-  // This sends the restart command to the active terminal
-  {
-    "keys": ["shift t"],
-    "command": "terminal::SendText",
-    "args": {
-      "text": "flutter restart\n"
-    }
-  },
+  // Terminal search: Ctrl+Shift+F (Linux/Windows) — highlights matches in scrollback
+  // Editor search on exported log: open .zed/flutter/filtered.log then Ctrl+F
 
-  // Open DevTools - Press Shift+D to launch Flutter DevTools
-  // This opens DevTools at http://localhost:9100
   {
-    "keys": ["shift d"],
-    "command": "terminal::SendText",
-    "args": {
-      "text": "flutter pub global run devtools --port 9100\n"
-    }
-  },
-
-  // Quick pub get - Press Shift+G to run flutter pub get
-  {
-    "keys": ["shift g"],
-    "command": "terminal::SendText",
-    "args": {
-      "text": "flutter pub get\n"
-    }
-  },
-
-  // Quick flutter doctor - Press Shift+F to run flutter doctor
-  {
-    "keys": ["shift f"],
-    "command": "terminal::SendText",
-    "args": {
-      "text": "flutter doctor -v\n"
+    "context": "Terminal",
+    "bindings": {
+      // Forward common readline search if needed (optional)
+      "ctrl-shift-f": "pane::DeploySearch"
     }
   }
 ]
