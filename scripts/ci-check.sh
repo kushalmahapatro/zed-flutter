@@ -52,6 +52,10 @@ write_pubspec "$SMOKE/root/pubspec.yaml"
   "$REPO_ROOT/scripts/zed-flutter-bootstrap.sh" --fvm off
   python3 -m json.tool .zed/tasks.json >/dev/null
   python3 -m json.tool .zed/debug.json >/dev/null
+
+  "$REPO_ROOT/scripts/zed-flutter-bootstrap.sh" --fvm off --full
+  python3 -c "import json; d=json.load(open('.zed/tasks.json')); assert 'flutter_doctor' in d"
+  python3 -c "import json; d=json.load(open('.zed/debug.json')); assert any(c.get('device_id')=='chrome' for c in d)"
 )
 
 # Monorepo: root + apps/mobile, then melos-wrapped generation

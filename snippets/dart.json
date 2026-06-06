@@ -1,0 +1,117 @@
+{
+  "Stateless Widget": {
+    "prefix": "stless",
+    "description": "Create a StatelessWidget",
+    "body": [
+      "class ${1:MyWidget} extends StatelessWidget {",
+      "  const ${1:MyWidget}({super.key});",
+      "",
+      "  @override",
+      "  Widget build(BuildContext context) {",
+      "    return ${2:const Placeholder()};",
+      "  }",
+      "}"
+    ]
+  },
+  "Stateful Widget": {
+    "prefix": "stful",
+    "description": "Create a StatefulWidget",
+    "body": [
+      "class ${1:MyWidget} extends StatefulWidget {",
+      "  const ${1:MyWidget}({super.key});",
+      "",
+      "  @override",
+      "  State<${1:MyWidget}> createState() => _${1:MyWidget}State();",
+      "}",
+      "",
+      "class _${1:MyWidget}State extends State<${1:MyWidget}> {",
+      "  @override",
+      "  Widget build(BuildContext context) {",
+      "    return ${2:const Placeholder()};",
+      "  }",
+      "}"
+    ]
+  },
+  "Consumer Widget": {
+    "prefix": "consumer",
+    "description": "Riverpod ConsumerWidget",
+    "body": [
+      "class ${1:MyWidget} extends ConsumerWidget {",
+      "  const ${1:MyWidget}({super.key});",
+      "",
+      "  @override",
+      "  Widget build(BuildContext context, WidgetRef ref) {",
+      "    return ${2:const Placeholder()};",
+      "  }",
+      "}"
+    ]
+  },
+  "Scaffold": {
+    "prefix": "scaffold",
+    "description": "Scaffold with AppBar",
+    "body": [
+      "Scaffold(",
+      "  appBar: AppBar(title: const Text('${1:Title}')),",
+      "  body: ${2:const Center(child: Text('Hello'))},",
+      ")"
+    ]
+  },
+  "MaterialApp": {
+    "prefix": "materialapp",
+    "description": "MaterialApp root",
+    "body": [
+      "MaterialApp(",
+      "  title: '${1:App}',",
+      "  theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),",
+      "  home: ${2:const Placeholder()},",
+      ")"
+    ]
+  },
+  "FutureBuilder": {
+    "prefix": "futurebuilder",
+    "description": "FutureBuilder widget",
+    "body": [
+      "FutureBuilder<${1:Object}>(",
+      "  future: ${2:future},",
+      "  builder: (context, snapshot) {",
+      "    if (snapshot.connectionState == ConnectionState.waiting) {",
+      "      return const CircularProgressIndicator();",
+      "    }",
+      "    if (snapshot.hasError) {",
+      "      return Text('${3:Error}: \\${snapshot.error}');",
+      "    }",
+      "    return ${4:const SizedBox.shrink()};",
+      "  },",
+      ")"
+    ]
+  },
+  "StreamBuilder": {
+    "prefix": "streambuilder",
+    "description": "StreamBuilder widget",
+    "body": [
+      "StreamBuilder<${1:Object}>(",
+      "  stream: ${2:stream},",
+      "  builder: (context, snapshot) {",
+      "    if (!snapshot.hasData) {",
+      "      return const CircularProgressIndicator();",
+      "    }",
+      "    return ${3:const SizedBox.shrink()};",
+      "  },",
+      ")"
+    ]
+  },
+  "Widget Test": {
+    "prefix": "testwidget",
+    "description": "Flutter widget test",
+    "body": [
+      "import 'package:flutter_test/flutter_test.dart';",
+      "",
+      "void main() {",
+      "  testWidgets('${1:description}', (tester) async {",
+      "    await tester.pumpWidget(${2:const MyApp()});",
+      "    expect(find.text('${3:Hello}'), findsOneWidget);",
+      "  });",
+      "}"
+    ]
+  }
+}
