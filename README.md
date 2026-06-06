@@ -142,7 +142,19 @@ Copy [`scripts/zed-flutter-devtools.sh`](scripts/zed-flutter-devtools.sh) into y
 | Flutter: DevTools (logging) | Structured app logs (better than terminal grep) |
 | Flutter: run (tee to log) | Persist `flutter run` output to `.zed/flutter/run.log` |
 
-Keybindings (see [`examples/zed-keymap.example.json`](examples/zed-keymap.example.json)): `Shift+D` DevTools, `Shift+I` inspector, `Shift+L` logging.
+Keybindings (see [`examples/zed-keymap.example.json`](examples/zed-keymap.example.json)):
+
+| Keys | Action |
+|------|--------|
+| `Shift+D` | DevTools (connected) |
+| `Shift+I` | Widget inspector |
+| `Shift+L` | DevTools logging |
+| `Alt+Shift+R` | Hot reload (VM Service) |
+| `Alt+Shift+T` | Hot restart |
+| `Shift+R` | Run with log tee |
+| `Shift+W` / `Shift+E` | Watch / export filtered logs |
+
+`zed-flutter-init.sh` copies helper scripts into your project's `scripts/` directory.
 
 ### Debugging logs when Zed cannot filter the terminal
 

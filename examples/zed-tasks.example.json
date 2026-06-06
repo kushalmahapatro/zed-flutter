@@ -144,10 +144,22 @@
     "reveal": "always"
   },
   "flutter_hot_reload": {
-    "label": "Flutter: Hot Reload",
-    "command": "flutter pub global run flutter_tools hot-reload",
-    "hide": "success",
-    "run": "onTaskSuccess"
+    "label": "Flutter: hot reload (VM service)",
+    "command": "bash scripts/zed-flutter-hot.sh reload",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "never"
+  },
+  "flutter_hot_restart": {
+    "label": "Flutter: hot restart (VM service)",
+    "command": "bash scripts/zed-flutter-hot.sh restart",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "never"
+  },
+  "flutter_integration_test": {
+    "label": "Flutter: integration test",
+    "command": "flutter test integration_test",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
   },
   "flutter_run_tee_log": {
     "label": "Flutter: run (tee to log)",

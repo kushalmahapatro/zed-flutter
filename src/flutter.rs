@@ -82,6 +82,13 @@ impl FlutterExtension {
                 ),
             );
         }
+        // Lets the Dart/Flutter DAP write the VM Service URI for DevTools / hot reload scripts.
+        if request == "launch" {
+            obj.insert(
+                "vmServiceInfoFile".into(),
+                serde_json::Value::String(".zed/flutter/vmservice.json".into()),
+            );
+        }
         serde_json::to_string(&value).ok()
     }
 }
@@ -840,6 +847,27 @@ mod tests {
         assert_eq!(
             opts.vm_service_uri.as_deref(),
             Some("ws://127.0.0.1:12345/ws")
+        );
+    }
+
+    #[test]
+    fn launch_config_includes_vmservice_info_file() {
+        let launch = FlutterLaunchOptions::default();
+        let cfg = FlutterExtension::dart_flutter_config(
+            "test",
+            false,
+            "lib/main.dart",
+            Some("$ZED_WORKTREE_ROOT".into()),
+            "launch",
+            None,
+            None,
+            &launch,
+        )
+        .unwrap();
+        let v: serde_json::Value = serde_json::from_str(&cfg).unwrap();
+        assert_eq!(
+            v.get("vmServiceInfoFile").and_then(|x| x.as_str()),
+            Some(".zed/flutter/vmservice.json")
         );
     }
 

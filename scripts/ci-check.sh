@@ -102,6 +102,15 @@ EOF
   bash scripts/zed-flutter-logs.sh export-levels error >/dev/null
   test -s .zed/flutter/filtered.log
   bash scripts/zed-flutter-logs.sh filter 'App started' | grep -q 'App started'
+  bash scripts/zed-flutter-hot.sh reload 2>/dev/null && exit 1 || true
+)
+
+echo "==> copy-scripts smoke"
+(
+  cd "$SMOKE/root"
+  bash "$REPO_ROOT/scripts/zed-flutter-copy-scripts.sh" scripts
+  test -x scripts/zed-flutter-hot.sh
+  test -x scripts/zed-flutter-devtools.sh
 )
 
 echo "ci-check: OK"
