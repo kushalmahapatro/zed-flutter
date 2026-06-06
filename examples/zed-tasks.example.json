@@ -165,6 +165,12 @@
     "command": "dart pub global activate devtools",
     "reveal": "always"
   },
+  "flutter_attach": {
+    "label": "Flutter: attach to running app",
+    "command": "flutter attach",
+    "cwd": "$ZED_WORKTREE_ROOT",
+    "reveal": "always"
+  },
   "flutter_run_debug": {
     "label": "Flutter: Run in Debug Mode",
     "command": "flutter run --debug",

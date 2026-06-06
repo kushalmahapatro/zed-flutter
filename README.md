@@ -141,9 +141,41 @@ The reference list lives in [`examples/zed-tasks.example.json`](examples/zed-tas
 
 Use the example task **Flutter: bootstrap .zed tasks/debug** to generate project-specific flavored configs quickly.
 
+## Quick project setup (v0.4+)
+
+From your Flutter project root:
+
+```bash
+bash /path/to/zed-flutter/scripts/zed-flutter-init.sh
+```
+
+This copies starter `.zed/keymap.json`, a device policy template, and generates `.zed/tasks.json` + `.zed/debug.json` with the full example task/debug library (`--full`).
+
+For flavor-aware projects:
+
+```bash
+bash scripts/zed-flutter-init.sh --flavors dev,staging,prod \
+  --targets dev:lib/main_dev.dart,staging:lib/main_staging.dart,prod:lib/main_prod.dart
+```
+
+### Debug locator enhancements (v0.4)
+
+When you debug from a task, the locator now forwards:
+
+| Task flag | Debug config field |
+|-----------|-------------------|
+| `--debug` / `--profile` / `--release` | `profile` and `flutterMode` |
+| `--flavor`, `--dart-define`, web flags | `toolArgs` |
+| args after `--` | `args` (program arguments) |
+| `flutter attach --debug-uri=…` | `request: attach`, `vmServiceUri` |
+
+FVM projects: the extension points the Dart analyzer at `.fvm/flutter_sdk` when the Dart extension's language server starts.
+
+Bundled **Flutter snippets** (`stless`, `stful`, `scaffold`, etc.) ship with the extension — no manual copy required when installed as a dev/marketplace extension.
+
 ## Roadmap
 
-See [`ROADMAP.md`](ROADMAP.md) for the v0.3 roadmap (milestones 1–4). See also [`RELEASING.md`](RELEASING.md).
+See [`ROADMAP.md`](ROADMAP.md) for milestones 1–5. See also [`RELEASING.md`](RELEASING.md).
 
 **CI locally:** from the repo root run `./scripts/ci-check.sh` (Rust tests, wasm build, JSON checks, bootstrap smoke tests).
 

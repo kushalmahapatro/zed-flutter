@@ -1,3 +1,16 @@
+# Zed Flutter Extension Roadmap
+
+## Milestone 5: Full Flutter workflow (v0.4 — implemented)
+
+- **Enhanced debug locator** — maps `flutter run`, `test`, and `attach` tasks to Dart DAP configs with `profile` / `flutterMode`, `toolArgs` (flavor, dart-define, web options), program args after `--`, and `vmServiceUri` for attach.
+- **Smarter platform inference** — uses `targetPlatform` from `flutter devices --machine`, not only device id heuristics.
+- **FVM + Dart LSP** — when `.fvm/` exists, supplies `dart.flutterSdkPath` workspace configuration to the Dart language server.
+- **Bootstrap `--full`** — merges `examples/zed-tasks.example.json` and `examples/zed-debug.example.json` into generated project files.
+- **`scripts/zed-flutter-init.sh`** — one-shot project setup (keymap, device policy template, full bootstrap).
+- **Bundled Flutter snippets** — common widget/test snippets via `snippets/dart.json`.
+
+---
+
 # Zed Flutter Extension Roadmap (v0.3)
 
 This roadmap focuses on improving daily-driver Flutter workflows in Zed while staying within current extension API limits.

@@ -2,8 +2,8 @@
 //! DAP (`flutter debug_adapter` / `dart debug_adapter`), which provides breakpoints,
 //! isolate/thread views, and the rest of DAP.
 //!
-//! When a `flutter run` / `flutter test` task omits `-d` / `--device-id`, this locator
-//! resolves a device by:
+//! When a `flutter run` / `flutter test` / `flutter attach` task omits `-d` / `--device-id`,
+//! this locator resolves a device by:
 //! 1. Reading `.zed/flutter_devices.json` (new format) and `.zed/flutter_device_id` (legacy).
 //! 2. Running `flutter devices --machine` in the task directory (so FVM picks the right SDK).
 //! 3. Using persisted/fallback ids when still available; otherwise first supported device.
@@ -12,13 +12,23 @@
 use std::path::Path;
 
 use zed_extension_api::serde_json::{self, json};
-use zed_extension_api::{self as zed, Command, Os, TaskTemplate, current_platform};
+use zed_extension_api::{
+    self as zed, Command, LanguageServerId, Os, TaskTemplate, Worktree, current_platform,
+};
 
 const DART_ADAPTER: &str = "Dart";
 const DEVICE_STORE_REL: &str = ".zed/flutter_device_id";
 const DEVICE_STORE_JSON_REL: &str = ".zed/flutter_devices.json";
 
 struct FlutterExtension;
+
+#[derive(Clone, Debug, Default)]
+struct FlutterLaunchOptions {
+    profile: Option<String>,
+    tool_args: Vec<String>,
+    program_args: Vec<String>,
+    vm_service_uri: Option<String>,
+}
 
 impl FlutterExtension {
     fn dart_flutter_config(
@@ -29,7 +39,7 @@ impl FlutterExtension {
         request: &str,
         device_id: Option<&str>,
         platform: Option<&str>,
-        vm_service_uri: Option<&str>,
+        launch: &FlutterLaunchOptions,
     ) -> Option<String> {
         let mut value = json!({
             "adapter": DART_ADAPTER,
@@ -38,27 +48,39 @@ impl FlutterExtension {
             "label": resolved_label,
             "program": program,
             "useFvm": use_fvm,
-            "args": [],
+            "args": launch.program_args,
         });
+        let obj = value.as_object_mut()?;
         if let Some(c) = &cwd {
-            value
-                .as_object_mut()?
-                .insert("cwd".into(), serde_json::Value::String(c.clone()));
+            obj.insert("cwd".into(), serde_json::Value::String(c.clone()));
         }
         if let Some(d) = device_id {
-            value
-                .as_object_mut()?
-                .insert("device_id".into(), serde_json::Value::String(d.into()));
+            obj.insert("device_id".into(), serde_json::Value::String(d.into()));
         }
         if let Some(p) = platform {
-            value
-                .as_object_mut()?
-                .insert("platform".into(), serde_json::Value::String(p.into()));
+            obj.insert("platform".into(), serde_json::Value::String(p.into()));
         }
-        if let Some(uri) = vm_service_uri {
-            value
-                .as_object_mut()?
-                .insert("vmServiceUri".into(), serde_json::Value::String(uri.into()));
+        if let Some(profile) = &launch.profile {
+            obj.insert("profile".into(), serde_json::Value::String(profile.clone()));
+            obj.insert(
+                "flutterMode".into(),
+                serde_json::Value::String(profile.clone()),
+            );
+        }
+        if let Some(uri) = &launch.vm_service_uri {
+            obj.insert("vmServiceUri".into(), serde_json::Value::String(uri.clone()));
+        }
+        if !launch.tool_args.is_empty() {
+            obj.insert(
+                "toolArgs".into(),
+                serde_json::Value::Array(
+                    launch
+                        .tool_args
+                        .iter()
+                        .map(|a| serde_json::Value::String(a.clone()))
+                        .collect(),
+                ),
+            );
         }
         serde_json::to_string(&value).ok()
     }
@@ -82,15 +104,22 @@ fn flutter_invocation(task: &TaskTemplate) -> Option<(bool, &[String])> {
     None
 }
 
-fn parse_device_id(rest: &[&str]) -> Option<String> {
+fn split_at_double_dash<'a>(rest: &'a [&'a str]) -> (&'a [&'a str], &'a [&'a str]) {
+    if let Some(pos) = rest.iter().position(|a| *a == "--") {
+        let (before, after) = rest.split_at(pos);
+        (before, &after[1..])
+    } else {
+        (rest, &[])
+    }
+}
+
+fn parse_flag_value(rest: &[&str], short: &str, long: &str) -> Option<String> {
     let mut i = 0;
     while i < rest.len() {
         match rest[i] {
-            "-d" | "--device-id" => {
-                return rest.get(i + 1).map(|s| (*s).to_string());
-            }
-            v if v.starts_with("--device-id=") => {
-                return v.strip_prefix("--device-id=").map(str::to_string);
+            v if v == short || v == long => return rest.get(i + 1).map(|s| (*s).to_string()),
+            v if let Some(val) = v.strip_prefix(&format!("{long}=")) => {
+                return Some(val.to_string());
             }
             _ => {}
         }
@@ -99,21 +128,101 @@ fn parse_device_id(rest: &[&str]) -> Option<String> {
     None
 }
 
+fn parse_device_id(rest: &[&str]) -> Option<String> {
+    parse_flag_value(rest, "-d", "--device-id")
+}
+
 fn parse_target_path(rest: &[&str]) -> Option<String> {
-    let mut i = 0;
-    while i < rest.len() {
-        match rest[i] {
-            "-t" | "--target" => {
-                return rest.get(i + 1).map(|s| (*s).to_string());
-            }
-            v if v.starts_with("--target=") => {
-                return v.strip_prefix("--target=").map(str::to_string);
-            }
+    parse_flag_value(rest, "-t", "--target")
+}
+
+fn parse_vm_service_uri(rest: &[&str]) -> Option<String> {
+    parse_flag_value(rest, "", "--debug-uri").or_else(|| parse_flag_value(rest, "", "--host-vmservice-port").map(|p| format!("http://127.0.0.1:{p}/")))
+}
+
+/// Maps `flutter run` profile flags to DAP `profile` / `flutterMode`.
+fn parse_profile_mode(rest: &[&str]) -> Option<&'static str> {
+    for arg in rest {
+        match *arg {
+            "--release" => return Some("release"),
+            "--profile" => return Some("profile"),
+            "--debug" => return Some("debug"),
             _ => {}
         }
-        i += 1;
     }
     None
+}
+
+fn is_handled_run_flag(arg: &str) -> bool {
+    matches!(
+        arg,
+        "-d" | "--device-id" | "-t" | "--target" | "--debug" | "--profile" | "--release"
+    ) || arg.starts_with("--device-id=")
+        || arg.starts_with("--target=")
+        || arg.starts_with("--debug-uri=")
+        || arg.starts_with("--host-vmservice-port=")
+}
+
+/// Collects flutter-tool flags (flavor, dart-define, web options, etc.) for `toolArgs`.
+fn collect_tool_args(rest: &[&str]) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < rest.len() {
+        let arg = rest[i];
+        if arg == "--" {
+            break;
+        }
+        if is_handled_run_flag(arg) {
+            if matches!(arg, "-d" | "--device-id" | "-t" | "--target" | "--debug-uri" | "--host-vmservice-port") {
+                i += 2;
+                continue;
+            }
+            i += 1;
+            continue;
+        }
+        if arg.starts_with('-') {
+            let takes_value = matches!(
+                arg,
+                "--flavor"
+                    | "--dart-define"
+                    | "--dart-define-from-file"
+                    | "--web-port"
+                    | "--web-hostname"
+                    | "--web-tls-cert-path"
+                    | "--web-tls-cert-key-path"
+                    | "--device-user"
+                    | "--build-number"
+                    | "--build-name"
+                    | "--split-debug-info"
+                    | "--enable-experiment"
+                    | "--dart-entrypoint-args"
+            ) || arg.starts_with("--dart-define=")
+                || arg.starts_with("--dart-define-from-file=")
+                || arg.starts_with("--flavor=");
+            out.push(arg.to_string());
+            if takes_value && !arg.contains('=') {
+                if let Some(v) = rest.get(i + 1) {
+                    out.push((*v).to_string());
+                    i += 1;
+                }
+            }
+            i += 1;
+            continue;
+        }
+        // Positional entrypoint is handled separately.
+        i += 1;
+    }
+    out
+}
+
+fn launch_options_from_rest(rest: &[&str]) -> FlutterLaunchOptions {
+    let (tool_part, program_part) = split_at_double_dash(rest);
+    FlutterLaunchOptions {
+        profile: parse_profile_mode(tool_part).map(str::to_string),
+        tool_args: collect_tool_args(tool_part),
+        program_args: program_part.iter().map(|s| (*s).to_string()).collect(),
+        vm_service_uri: parse_vm_service_uri(tool_part),
+    }
 }
 
 fn infer_platform(device: Option<&str>) -> Option<&'static str> {
@@ -123,17 +232,59 @@ fn infer_platform(device: Option<&str>) -> Option<&'static str> {
         "chrome" | "edge" | "web-server" | "wasm_release" | "wasm_debug"
     ) {
         Some("web")
-    } else {
+    } else if matches!(d, "linux" | "windows" | "macos") {
         Some("desktop")
+    } else {
+        None
     }
 }
 
+fn infer_platform_from_target_platform(target_platform: &str) -> Option<&'static str> {
+    let tp = target_platform.to_ascii_lowercase();
+    if tp.contains("web") {
+        Some("web")
+    } else if tp.contains("linux")
+        || tp.contains("windows")
+        || tp.contains("darwin")
+        || tp.contains("macos")
+    {
+        Some("desktop")
+    } else {
+        None
+    }
+}
+
+fn platform_for_device(device_id: Option<&str>, devices: &[DeviceInfo]) -> Option<&'static str> {
+    if let Some(id) = device_id {
+        if let Some(device) = devices.iter().find(|d| d.id == id) {
+            if let Some(tp) = device.target_platform.as_deref() {
+                if let Some(p) = infer_platform_from_target_platform(tp) {
+                    return Some(p);
+                }
+            }
+        }
+        return infer_platform(Some(id));
+    }
+    None
+}
+
 fn program_for_run(rest: &[&str]) -> String {
-    parse_target_path(rest).unwrap_or_else(|| "lib/main.dart".into())
+    if let Some(target) = parse_target_path(rest) {
+        return target;
+    }
+    let (tool_part, _) = split_at_double_dash(rest);
+    for arg in tool_part {
+        if !arg.starts_with('-') {
+            return (*arg).to_string();
+        }
+    }
+    "lib/main.dart".into()
 }
 
 fn program_for_test(rest: &[&str]) -> Option<String> {
-    rest.first().map(|p| p.split('?').next().unwrap_or(p).to_string())
+    rest.iter()
+        .find(|a| !a.starts_with('-'))
+        .map(|p| p.split('?').next().unwrap_or(p).to_string())
 }
 
 /// POSIX single-quoted string literal content for `sh -c`.
@@ -391,29 +542,56 @@ fn write_device_store_json(cwd: &str, selected_id: &str, devices: &[DeviceInfo])
     }
 }
 
+struct ResolvedDevice {
+    id: Option<String>,
+    devices: Vec<DeviceInfo>,
+}
+
 /// Resolves `device_id` when the task did not pass `-d` / `--device-id`.
 fn resolve_device_for_debug(
     from_task_args: Option<String>,
     cwd: Option<&str>,
     use_fvm: bool,
-) -> Option<String> {
-    if from_task_args.is_some() {
-        return from_task_args;
+) -> ResolvedDevice {
+    if let Some(id) = from_task_args {
+        return ResolvedDevice {
+            id: Some(id),
+            devices: Vec::new(),
+        };
     }
-    let cwd = cwd?;
+    let Some(cwd) = cwd else {
+        return ResolvedDevice {
+            id: None,
+            devices: Vec::new(),
+        };
+    };
     let persisted_candidates = read_persisted_device_candidates(cwd);
-    let machine_stdout = run_flutter_devices_machine_stdout(cwd, use_fvm)?;
+    let machine_stdout = match run_flutter_devices_machine_stdout(cwd, use_fvm) {
+        Some(s) => s,
+        None => {
+            return ResolvedDevice {
+                id: persisted_candidates.into_iter().next(),
+                devices: Vec::new(),
+            };
+        }
+    };
     let devices = parse_flutter_devices_machine(&machine_stdout);
 
     if devices.is_empty() {
-        return persisted_candidates.into_iter().next();
+        return ResolvedDevice {
+            id: persisted_candidates.into_iter().next(),
+            devices,
+        };
     }
 
     let ids: Vec<&str> = devices.iter().map(|d| d.id.as_str()).collect();
     for candidate in persisted_candidates {
         if ids.iter().any(|d| *d == candidate) {
             write_device_store_json(cwd, &candidate, &devices);
-            return Some(candidate);
+            return ResolvedDevice {
+                id: Some(candidate),
+                devices,
+            };
         }
     }
 
@@ -425,12 +603,76 @@ fn resolve_device_for_debug(
     if let Some(ref id) = selected {
         write_device_store_json(cwd, id, &devices);
     }
-    selected
+    ResolvedDevice {
+        id: selected,
+        devices,
+    }
+}
+
+fn fvm_flutter_sdk_path(worktree_root: &str) -> Option<String> {
+    let sdk_link = read_text_file_with_shell(worktree_root, ".fvm/fvm_config.json")?;
+    if let Ok(v) = serde_json::from_str::<serde_json::Value>(&sdk_link) {
+        if let Some(version) = v.get("flutterSdkVersion").and_then(|x| x.as_str()) {
+            let cache = read_text_file_with_shell(worktree_root, ".fvm/flutter_sdk");
+            if cache.is_some() {
+                let root_q = shell_single_quote(worktree_root);
+                let output = match current_platform().0 {
+                    Os::Windows => {
+                        let root = ps_single_quote_escape(worktree_root);
+                        Command::new("powershell")
+                            .args([
+                                "-NoProfile",
+                                "-NonInteractive",
+                                "-Command",
+                                &format!(
+                                    "Set-Location -LiteralPath '{root}'; if (Test-Path '.fvm/flutter_sdk') {{ Resolve-Path '.fvm/flutter_sdk' | Select-Object -ExpandProperty Path }}"
+                                ),
+                            ])
+                            .output()
+                            .ok()?
+                    }
+                    Os::Mac | Os::Linux => Command::new("sh")
+                        .args([
+                            "-c",
+                            &format!("cd {root_q} && readlink -f .fvm/flutter_sdk 2>/dev/null || realpath .fvm/flutter_sdk 2>/dev/null || echo .fvm/flutter_sdk"),
+                        ])
+                        .output()
+                        .ok()?,
+                };
+                let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                if !path.is_empty() {
+                    return Some(path);
+                }
+            }
+            let _ = version; // version present confirms FVM project
+        }
+    }
+    None
 }
 
 impl zed::Extension for FlutterExtension {
     fn new() -> Self {
         Self
+    }
+
+    fn language_server_additional_workspace_configuration(
+        &mut self,
+        _language_server_id: &LanguageServerId,
+        target_language_server_id: &LanguageServerId,
+        worktree: &Worktree,
+    ) -> zed::Result<Option<zed_extension_api::serde_json::Value>> {
+        if target_language_server_id.as_ref() != "dart" {
+            return Ok(None);
+        }
+        let root = worktree.root_path();
+        let Some(flutter_sdk) = fvm_flutter_sdk_path(&root) else {
+            return Ok(None);
+        };
+        Ok(Some(json!({
+            "dart": {
+                "flutterSdkPath": flutter_sdk
+            }
+        })))
     }
 
     fn dap_locator_create_scenario(
@@ -450,38 +692,37 @@ impl zed::Extension for FlutterExtension {
 
         let cwd = build_task.cwd.clone();
         let from_args = parse_device_id(&rest);
-        let device = resolve_device_for_debug(from_args, cwd.as_deref(), use_fvm);
-        let platform = infer_platform(device.as_deref());
+        let resolved = resolve_device_for_debug(from_args, cwd.as_deref(), use_fvm);
+        let device = resolved.id;
+        let platform = platform_for_device(device.as_deref(), &resolved.devices);
+        let launch = launch_options_from_rest(&rest);
 
-        let config = match cmd {
+        let (request, program, launch) = match cmd {
             "run" => {
                 let program = program_for_run(&rest);
-                Self::dart_flutter_config(
-                    &resolved_label,
-                    use_fvm,
-                    &program,
-                    cwd,
-                    "launch",
-                    device.as_deref(),
-                    platform,
-                    None,
-                )?
+                ("launch", program, launch)
             }
             "test" => {
                 let program = program_for_test(&rest)?;
-                Self::dart_flutter_config(
-                    &resolved_label,
-                    use_fvm,
-                    &program,
-                    cwd,
-                    "launch",
-                    device.as_deref(),
-                    platform,
-                    None,
-                )?
+                ("launch", program, launch)
+            }
+            "attach" => {
+                let program = parse_target_path(&rest).unwrap_or_else(|| "lib/main.dart".into());
+                ("attach", program, launch)
             }
             _ => return None,
         };
+
+        let config = Self::dart_flutter_config(
+            &resolved_label,
+            use_fvm,
+            &program,
+            cwd,
+            request,
+            device.as_deref(),
+            platform,
+            &launch,
+        )?;
 
         Some(zed::DebugScenario {
             adapter: debug_adapter_name,
@@ -511,6 +752,43 @@ mod tests {
     }
 
     #[test]
+    fn parse_profile_flags() {
+        let rest = vec!["--profile", "-t", "lib/main.dart"];
+        let r: Vec<&str> = rest.iter().copied().collect();
+        assert_eq!(parse_profile_mode(&r), Some("profile"));
+
+        let release = vec!["--release"];
+        assert_eq!(parse_profile_mode(&release), Some("release"));
+    }
+
+    #[test]
+    fn collect_flavor_and_dart_define() {
+        let rest = vec![
+            "--flavor",
+            "dev",
+            "--dart-define",
+            "API_URL=https://dev.example",
+            "-t",
+            "lib/main_dev.dart",
+        ];
+        let r: Vec<&str> = rest.iter().copied().collect();
+        let tool_args = collect_tool_args(&r);
+        assert!(tool_args.contains(&"--flavor".to_string()));
+        assert!(tool_args.contains(&"dev".to_string()));
+        assert!(tool_args.contains(&"--dart-define".to_string()));
+        assert!(tool_args.contains(&"API_URL=https://dev.example".to_string()));
+    }
+
+    #[test]
+    fn program_args_after_double_dash() {
+        let rest = vec!["--debug", "lib/main.dart", "--", "--verbose"];
+        let r: Vec<&str> = rest.iter().copied().collect();
+        let opts = launch_options_from_rest(&r);
+        assert_eq!(opts.profile.as_deref(), Some("debug"));
+        assert_eq!(opts.program_args, vec!["--verbose".to_string()]);
+    }
+
+    #[test]
     fn parse_devices_machine_json() {
         let json = br#"[
           {"name":"Linux","id":"linux","isSupported":true,"targetPlatform":"linux-x64"}
@@ -523,9 +801,46 @@ mod tests {
     }
 
     #[test]
+    fn infer_platform_from_target_platform_values() {
+        assert_eq!(
+            infer_platform_from_target_platform("linux-x64"),
+            Some("desktop")
+        );
+        assert_eq!(
+            infer_platform_from_target_platform("web-javascript"),
+            Some("web")
+        );
+        assert_eq!(infer_platform_from_target_platform("android-arm64"), None);
+    }
+
+    #[test]
+    fn platform_for_device_uses_machine_metadata() {
+        let devices = vec![DeviceInfo {
+            id: "linux".into(),
+            name: Some("Linux".into()),
+            is_supported: true,
+            target_platform: Some("linux-x64".into()),
+            emulator: Some(false),
+            sdk: None,
+        }];
+        assert_eq!(platform_for_device(Some("linux"), &devices), Some("desktop"));
+    }
+
+    #[test]
     fn infer_platform_web() {
         assert_eq!(infer_platform(Some("chrome")), Some("web"));
         assert_eq!(infer_platform(Some("linux")), Some("desktop"));
+    }
+
+    #[test]
+    fn parse_attach_debug_uri() {
+        let rest = vec!["--debug-uri", "ws://127.0.0.1:12345/ws"];
+        let r: Vec<&str> = rest.iter().copied().collect();
+        let opts = launch_options_from_rest(&r);
+        assert_eq!(
+            opts.vm_service_uri.as_deref(),
+            Some("ws://127.0.0.1:12345/ws")
+        );
     }
 
     #[test]

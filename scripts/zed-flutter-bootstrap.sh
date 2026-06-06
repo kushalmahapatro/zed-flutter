@@ -21,6 +21,7 @@ fvm_mode="auto" # auto|on|off
 package_path=""
 melos_mode="off" # off|on
 package_name=""
+full_mode="off" # off|on — merge examples/zed-tasks.example.json and zed-debug.example.json
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -47,6 +48,10 @@ while [[ $# -gt 0 ]]; do
     --package-name)
       package_name="${2:-}"
       shift 2
+      ;;
+    --full)
+      full_mode="on"
+      shift
       ;;
     -h|--help)
       sed -n '1,35p' "$0"
@@ -87,9 +92,12 @@ if [[ "$use_fvm" -eq 1 ]]; then
   runner_prefix="fvm flutter"
 fi
 
-python3 - "$flavors_csv" "$targets_csv" "$runner_prefix" "$package_path" "$melos_mode" "$package_name" <<'PY'
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+python3 - "$flavors_csv" "$targets_csv" "$runner_prefix" "$package_path" "$melos_mode" "$package_name" "$full_mode" "$REPO_ROOT" <<'PY'
 import json
 import sys
+from pathlib import Path
 
 flavors_csv = sys.argv[1].strip()
 targets_csv = sys.argv[2].strip()
@@ -97,6 +105,8 @@ runner_prefix = sys.argv[3].strip()
 package_path = sys.argv[4].strip()
 melos_mode = sys.argv[5].strip()
 package_name = sys.argv[6].strip()
+full_mode = sys.argv[7].strip()
+repo_root = Path(sys.argv[8].strip())
 
 flavors = [f.strip() for f in flavors_csv.split(",") if f.strip()] if flavors_csv else []
 targets = {}
@@ -211,9 +221,28 @@ for flavor in flavors:
             "program": target,
             "cwd": cwd,
             "useFvm": runner_prefix.startswith("fvm "),
-            "args": [f"--flavor={flavor}"],
+            "toolArgs": ["--flavor", flavor],
         }
     )
+
+if full_mode == "on":
+    tasks_example = repo_root / "examples" / "zed-tasks.example.json"
+    debug_example = repo_root / "examples" / "zed-debug.example.json"
+    if tasks_example.is_file():
+        with tasks_example.open(encoding="utf-8") as f:
+            example_tasks = json.load(f)
+        for key, task in example_tasks.items():
+            if key not in tasks:
+                tasks[key] = task
+            if package_path and task.get("cwd") == "$ZED_WORKTREE_ROOT":
+                tasks[key] = {**task, "cwd": cwd}
+    if debug_example.is_file():
+        with debug_example.open(encoding="utf-8") as f:
+            example_debug = json.load(f)
+        existing_labels = {d.get("label") for d in debug_configs}
+        for cfg in example_debug:
+            if cfg.get("label") not in existing_labels:
+                debug_configs.append(cfg)
 
 with open(".zed/tasks.json", "w", encoding="utf-8") as f:
     json.dump(tasks, f, indent=2)
@@ -233,4 +262,7 @@ if [[ -n "$flavors_csv" ]]; then
 fi
 if [[ "$melos_mode" == "on" ]]; then
   echo "Melos mode: on${package_name:+ (scope: $package_name)}"
+fi
+if [[ "$full_mode" == "on" ]]; then
+  echo "Full mode: merged example tasks and debug presets from ${REPO_ROOT}/examples/"
 fi
