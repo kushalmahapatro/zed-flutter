@@ -123,15 +123,40 @@ Press `Ctrl+S` (Linux/Windows) or `Cmd+S` (macOS) while editing Flutter files du
 
 Run the **Flutter: Hot Reload** task from the command palette: **zed: run task** → **Flutter: Hot Reload**.
 
-### DevTools and widget tree
+### DevTools, widget inspector, and logging
 
-Zed extensions cannot host a native widget tree panel yet; use **Flutter DevTools** in the browser for the widget inspector, performance, logging, and network tools.
+Zed cannot host a native widget tree or log filter panel yet. Use **Flutter DevTools** in the browser (widget inspector, logging, network, performance) via helper scripts and tasks.
 
-Example tasks (see [`examples/zed-tasks.example.json`](examples/zed-tasks.example.json)):
+**Typical workflow**
 
-- **Flutter: Open DevTools in browser** — runs `dart devtools` (opens a browser UI; connect to the VM service URL from your running app or from the debug session when prompted).
-- **Flutter: Open DevTools (local server)** — runs the DevTools server on port 9100.
-- **Flutter: list devices** / **machine JSON** — quick views of `flutter devices` output.
+1. Run with log capture: task **Flutter: run (tee to log)** (or debug as usual, then **Flutter: cache VM service from run log**).
+2. Open DevTools: **Flutter: DevTools (connected)** or **Flutter: DevTools (widget inspector)** / **(logging)**.
+3. Scripts resolve the VM Service URI from `.zed/flutter/vmservice.json` or `.zed/flutter/run.log`.
+
+Copy [`scripts/zed-flutter-devtools.sh`](scripts/zed-flutter-devtools.sh) into your repo or run via tasks (paths assume `scripts/` under project root).
+
+| Task | Purpose |
+|------|---------|
+| Flutter: DevTools (connected) | Browser DevTools for running app |
+| Flutter: DevTools (widget inspector) | Widget tree / layout |
+| Flutter: DevTools (logging) | Structured app logs (better than terminal grep) |
+| Flutter: run (tee to log) | Persist `flutter run` output to `.zed/flutter/run.log` |
+
+Keybindings (see [`examples/zed-keymap.example.json`](examples/zed-keymap.example.json)): `Shift+D` DevTools, `Shift+I` inspector, `Shift+L` logging.
+
+### Debugging logs when Zed cannot filter the terminal
+
+Zed supports **search** in the terminal (`Ctrl+Shift+F` on Linux/Windows) but **not line filtering** (hiding non-matching lines). For pattern-based debug logs:
+
+| Approach | How |
+|----------|-----|
+| **DevTools → Logging** | Best for `dart:developer` / framework logs while the app runs |
+| **Live grep** | Task **Flutter: watch run log (live filter)** — second terminal shows only matches |
+| **Export to file** | Task **Flutter: export errors to filtered.log** — open `.zed/flutter/filtered.log` in Zed; use normal editor search (`Ctrl+F`) |
+| **Device logs** | `bash scripts/zed-flutter-logs.sh device` or `device-filter 'MyWidget'` |
+| **Snapshots** | `bash scripts/zed-flutter-logs.sh snapshot 'ERROR\|Exception'` → `.zed/flutter/snapshots/` |
+
+Add local log files to `.gitignore` (see [`examples/zed-gitignore.example`](examples/zed-gitignore.example)).
 
 You can bind a key in `.zed/keymap.json` to run a task or paste a terminal command (see [`examples/zed-keymap.example.json`](examples/zed-keymap.example.json)).
 

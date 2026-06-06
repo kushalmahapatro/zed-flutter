@@ -1,5 +1,14 @@
 # Zed Flutter Extension Roadmap
 
+## Milestone 6: DevTools, inspector, and log debugging (v0.4.1 — implemented)
+
+- **`scripts/zed-flutter-devtools.sh`** — open DevTools connected to the running app; deep-link to `inspector`, `logging`, `network`, etc.; resolves VM Service URI from cache or `run.log`.
+- **`scripts/zed-flutter-logs.sh`** — work around Zed’s missing terminal/console line filter: `watch`, `export`, `snapshot`, `levels`, `device-filter`, `cache-uri`.
+- **Tasks + keymap** — DevTools/inspector/logging tasks; `Shift+D` / `Shift+I` / `Shift+L`; log export/watch bindings.
+- **Docs** — README section on log debugging; `examples/zed-gitignore.example` for local log state.
+
+---
+
 ## Milestone 5: Full Flutter workflow (v0.4 — implemented)
 
 - **Enhanced debug locator** — maps `flutter run`, `test`, and `attach` tasks to Dart DAP configs with `profile` / `flutterMode`, `toolArgs` (flavor, dart-define, web options), program args after `--`, and `vmServiceUri` for attach.
