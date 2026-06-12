@@ -1,5 +1,11 @@
 # Zed Flutter Extension Roadmap
 
+## Milestone 8: Upstream Dart DAP proposal (in repo)
+
+- [`upstream/zed-extensions-dart/`](../upstream/zed-extensions-dart/UPSTREAM_PR.md) — tested `build_flutter_dap_configuration()` + PR guide for `zed-extensions/dart` to pass `toolArgs`, `flutterMode`, `vmServiceInfoFile`, and stop defaulting to chrome/web.
+
+---
+
 ## Milestone 7: Hot reload, script install, flavor detect (v0.4.2 — implemented)
 
 - **`scripts/zed-flutter-hot.sh`** — hot reload / hot restart via VM Service (`ext.flutter.reassemble` / `ext.flutter.hotRestart`).

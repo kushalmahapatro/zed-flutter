@@ -113,4 +113,10 @@ echo "==> copy-scripts smoke"
   test -x scripts/zed-flutter-devtools.sh
 )
 
+echo "==> upstream Dart DAP proposal tests"
+(
+  cd "$REPO_ROOT/upstream/zed-extensions-dart"
+  cargo test
+)
+
 echo "ci-check: OK"
