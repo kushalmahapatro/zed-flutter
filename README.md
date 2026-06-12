@@ -210,15 +210,25 @@ FVM projects: the extension points the Dart analyzer at `.fvm/flutter_sdk` when 
 
 Bundled **Flutter snippets** (`stless`, `stful`, `scaffold`, etc.) ship with the extension — no manual copy required when installed as a dev/marketplace extension.
 
-### Upstream: Dart extension DAP passthrough
+### Two repos (this fork + Dart extension)
 
-The Flutter locator emits `toolArgs`, `profile`/`flutterMode`, and `vmServiceInfoFile`, but the **[Dart Zed extension](https://github.com/zed-extensions/dart) currently drops them** and hardcodes `flutterMode: debug` with `chrome`/`web` defaults.
+| Repo | What it does |
+|------|----------------|
+| **[kushalmahapatro/zed-flutter](https://github.com/kushalmahapatro/zed-flutter)** (this repo) | Flutter companion: locator, bootstrap, DevTools/log scripts, snippets |
+| **Fork of [zed-extensions/dart](https://github.com/zed-extensions/dart)** | Dart LSP + debug adapter — must pass `toolArgs`, `flutterMode`, `vmServiceInfoFile` |
 
-A tested upstream proposal lives in [`upstream/zed-extensions-dart/`](upstream/zed-extensions-dart/UPSTREAM_PR.md) — open a PR to `zed-extensions/dart` using that module so flavors, profile/release, and VM service URI capture work end-to-end in Zed.
+Full map: [`docs/REPO_MAP.md`](docs/REPO_MAP.md).
+
+The Flutter locator already emits the right DAP JSON; the stock Dart extension still drops fields and defaults to `chrome`/`web`. **Apply the patch:**
 
 ```bash
-cd upstream/zed-extensions-dart && cargo test
+git clone https://github.com/kushalmahapatro/dart.git   # fork zed-extensions/dart first on GitHub
+cd dart && git am /path/to/zed-flutter/upstream/zed-extensions-dart-dap.patch
+cargo test
+# Install as dev extension in Zed, then open PR to zed-extensions/dart
 ```
+
+Proposal tests: `cd upstream/zed-extensions-dart && cargo test`
 
 ## Roadmap
 

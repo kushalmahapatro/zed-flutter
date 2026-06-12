@@ -1,2 +1,2 @@
-/target
-*.wasm
+# Local Dart extension clone used to generate patches (keep patch file, not full .git tree)
+upstream/dart-extension-checkout/

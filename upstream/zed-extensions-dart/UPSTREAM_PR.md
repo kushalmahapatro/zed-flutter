@@ -1,5 +1,9 @@
 # Upstream PR: zed-extensions/dart — Flutter DAP field passthrough
 
+> **Your setup:** [kushalmahapatro/zed-flutter](https://github.com/kushalmahapatro/zed-flutter) is the Flutter companion.  
+> The Dart fix goes in a **separate fork** of [zed-extensions/dart](https://github.com/zed-extensions/dart) → PR upstream.  
+> See [`docs/REPO_MAP.md`](../../docs/REPO_MAP.md) and [`upstream/zed-extensions-dart-dap.patch`](../zed-extensions-dart-dap.patch).
+
 ## Problem
 
 The [Dart Zed extension](https://github.com/zed-extensions/dart) `get_dap_binary` rebuilds a minimal Flutter DAP config and **drops** fields that the [Flutter debug adapter](https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/debug_adapters/README.md) supports:
