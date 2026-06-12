@@ -210,6 +210,16 @@ FVM projects: the extension points the Dart analyzer at `.fvm/flutter_sdk` when 
 
 Bundled **Flutter snippets** (`stless`, `stful`, `scaffold`, etc.) ship with the extension — no manual copy required when installed as a dev/marketplace extension.
 
+### Upstream: Dart extension DAP passthrough
+
+The Flutter locator emits `toolArgs`, `profile`/`flutterMode`, and `vmServiceInfoFile`, but the **[Dart Zed extension](https://github.com/zed-extensions/dart) currently drops them** and hardcodes `flutterMode: debug` with `chrome`/`web` defaults.
+
+A tested upstream proposal lives in [`upstream/zed-extensions-dart/`](upstream/zed-extensions-dart/UPSTREAM_PR.md) — open a PR to `zed-extensions/dart` using that module so flavors, profile/release, and VM service URI capture work end-to-end in Zed.
+
+```bash
+cd upstream/zed-extensions-dart && cargo test
+```
+
 ## Roadmap
 
 See [`ROADMAP.md`](ROADMAP.md) for milestones 1–5. See also [`RELEASING.md`](RELEASING.md).
